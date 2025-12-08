@@ -44,8 +44,8 @@ public class CategoryServiceImpl implements CategoryService {
 
         //1.将传过来的数据都拷贝进入这个category
         BeanUtils.copyProperties(categoryDTO, category);
-        category.setUpdateTime(LocalDateTime.now());
-        category.setUpdateUser(BaseContext.getCurrentId());
+        //category.setUpdateTime(LocalDateTime.now());
+        //category.setUpdateUser(BaseContext.getCurrentId());
         categoryMapper.update(category);
 
     }
@@ -79,8 +79,8 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = Category.builder()
                 .status(status)
                 .id(id)
-                .updateTime(LocalDateTime.now())
-                .updateUser(BaseContext.getCurrentId())
+                //.updateTime(LocalDateTime.now())
+                //.updateUser(BaseContext.getCurrentId())
                 .build();
         categoryMapper.update(category);
 
@@ -101,12 +101,12 @@ public class CategoryServiceImpl implements CategoryService {
         category.setStatus(StatusConstant.DISABLE);
 
         //4.设置时间
-        category.setCreateTime(LocalDateTime.now());
-        category.setUpdateTime(LocalDateTime.now());
+        //category.setCreateTime(LocalDateTime.now());
+        //category.setUpdateTime(LocalDateTime.now());
 
         //5设置创建人信息
-        category.setCreateUser(BaseContext.getCurrentId());
-        category.setUpdateUser(BaseContext.getCurrentId());
+        //category.setCreateUser(BaseContext.getCurrentId());
+        //category.setUpdateUser(BaseContext.getCurrentId());
 
         //6插入数据库
         categoryMapper.insert(category);
