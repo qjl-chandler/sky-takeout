@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.github.pagehelper.Page;
@@ -18,6 +19,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.sky.entity.Orders.*;
 
@@ -53,6 +57,9 @@ public class OrdersServiceImpl implements OrderService {
 
     @Autowired
     WeChatPayUtil weChatPayUtil;
+
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     //便于快速获取 只在跳过支付情况下使用
     private Orders orders;
@@ -167,7 +174,13 @@ public class OrdersServiceImpl implements OrderService {
         LocalDateTime check_out_time = LocalDateTime.now();//更新支付时间
         ordersMapper.updateStatus(OrderStatus, OrderPaidStatus, check_out_time, this.orders.getId());
 
-
+        //以下代码只是为了测试
+        Map map = new HashMap();
+        map.put("type",1);//1来单提醒 2客户催单
+        map.put("orderId",this.orders.getId());
+        map.put("content","订单号："+this.orders.getNumber());
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
 
 
 
@@ -202,6 +215,14 @@ public class OrdersServiceImpl implements OrderService {
                 .build();
 
         ordersMapper.update(orders);
+
+        //通过websocket通报下单
+        Map map = new HashMap();
+        map.put("type",1);//1来单提醒 2客户催单
+        map.put("orderId",ordersDB.getId());
+        map.put("content","订单号："+ordersDB.getNumber());
+        String json = JSON.toJSONString(map);
+        webSocketServer.sendToAllClient(json);
     }
 
     @Override
