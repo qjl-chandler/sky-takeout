@@ -41,4 +41,7 @@ public interface OrdersMapper {
 
 
     Double getByMap(Map map);
+
+
+    Integer getCountByMap(Map map);
 }
