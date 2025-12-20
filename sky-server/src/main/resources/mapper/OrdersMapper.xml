@@ -58,4 +58,23 @@
         order by order_time desc
     </select>
 
+    <select id="getByMap" resultType="java.lang.Double" parameterType="map">
+        select sum(amount) from orders
+        <where>
+            <if test="begin != null">
+                and order_time &gt; #{begin}
+            </if>
+            <if test="end != null">
+                and order_time &lt; #{end}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+
+
+
+
+    </select>
+
 </mapper>

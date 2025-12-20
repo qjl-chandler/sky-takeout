@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrdersMapper {
@@ -34,4 +35,10 @@ public interface OrdersMapper {
 
     @Select("select * from orders where status = #{pendingPayment} and order_time < #{outTime}")
     List<Orders> getOrderByStatusAndTime(Integer pendingPayment, LocalDateTime outTime);
+
+//    @Select("select * from orders where order_time > #{todayMin} and order_time < #{todayMax} and status = 5")
+//    void getByTime(LocalDateTime todayMin, LocalDateTime todayMax);
+
+
+    Double getByMap(Map map);
 }
