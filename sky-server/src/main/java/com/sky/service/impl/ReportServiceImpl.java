@@ -2,8 +2,10 @@ package com.sky.service.impl;
 
 import com.sky.entity.Orders;
 import com.sky.mapper.OrdersMapper;
+import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
 import com.sky.vo.TurnoverReportVO;
+import com.sky.vo.UserReportVO;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     OrdersMapper ordersMapper;
+
+    @Autowired
+    UserMapper userMapper;
 
     @Override
     public TurnoverReportVO turnoverStatistics(LocalDate begin, LocalDate end) {
@@ -53,5 +58,39 @@ public class ReportServiceImpl implements ReportService {
         }
         turnoverReportVO.setTurnoverList(StringUtils.join(turnoverList,","));
         return turnoverReportVO;
+    }
+
+    @Override
+    public UserReportVO userStatistics(LocalDate begin, LocalDate end) {
+        UserReportVO userReportVO = new UserReportVO();
+        List<LocalDate> dateList = new ArrayList<>();
+        LocalDate nowDate = begin;
+        while (nowDate.isBefore(end)) {
+            dateList.add(nowDate);
+            nowDate = nowDate.plusDays(1);
+        }
+        dateList.add(end);
+        userReportVO.setDateList(StringUtils.join(dateList,","));
+
+        List<Integer> totalUserList = new ArrayList<>();
+        List<Integer> newUserList = new ArrayList<>();
+
+        for (LocalDate localDate : dateList) {
+            LocalDateTime todayMin = LocalDateTime.of(localDate, LocalTime.MIN);
+            LocalDateTime todayMax = LocalDateTime.of(localDate, LocalTime.MAX);
+
+            Map map = new HashMap();
+            map.put("begin", todayMin);
+            Integer totalUser = userMapper.selectByMap(map);
+            totalUserList.add(totalUser);
+            map.put("end", todayMax);
+            Integer newUser = userMapper.selectByMap(map);
+            newUserList.add(newUser);
+        }
+
+        userReportVO.setTotalUserList(StringUtils.join(totalUserList,","));
+        userReportVO.setNewUserList(StringUtils.join(newUserList,","));
+        return userReportVO;
+
     }
 }
