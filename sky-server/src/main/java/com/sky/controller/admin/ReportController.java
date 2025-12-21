@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -64,6 +65,13 @@ public class ReportController {
             LocalDate end) {
         SalesTop10ReportVO salesTop10ReportVO = reportService.top10(begin,end);
         return Result.success(salesTop10ReportVO);
+    }
+
+    //需要一个输出流 将文件下载到客户端浏览器
+    @GetMapping("/export")
+    public void export(HttpServletResponse response) {
+        reportService.export(response);
+
     }
 
 

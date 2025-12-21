@@ -6,17 +6,24 @@ import com.sky.mapper.OrderDetailMapper;
 import com.sky.mapper.OrdersMapper;
 import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
-import com.sky.vo.OrderReportVO;
-import com.sky.vo.SalesTop10ReportVO;
-import com.sky.vo.TurnoverReportVO;
-import com.sky.vo.UserReportVO;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.poi.util.StringUtil;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -39,6 +46,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     OrderDetailMapper orderDetailMapper;
+
+    @Autowired
+    WorkspaceService workspaceService;
 
 
     @Override
@@ -192,6 +202,59 @@ public class ReportServiceImpl implements ReportService {
 
         salesTop10ReportVO = SalesTop10ReportVO.builder().nameList(StringUtils.join(nameList,",")).numberList(StringUtils.join(numberList,",")).build();
         return salesTop10ReportVO;
+
+
+    }
+
+    @Override
+    public void export(HttpServletResponse response) {
+        LocalDate now = LocalDate.now();
+        LocalDate begin = now.minusDays(30);
+        LocalDate end = now.minusDays(1);
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
+        BusinessDataVO businessDataVO = workspaceService.businessData(beginTime, endTime);
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("template/report_template.xlsx");
+
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
+            XSSFSheet sheet = workbook.getSheetAt(0);
+
+            XSSFRow row = sheet.getRow(1);
+            row.getCell(1).setCellValue("时间: " + begin + "至" + end);
+
+            row = sheet.getRow(3);
+            row.getCell(2).setCellValue(businessDataVO.getTurnover());
+            row.getCell(4).setCellValue(businessDataVO.getOrderCompletionRate());
+            row.getCell(6).setCellValue(businessDataVO.getNewUsers());
+
+            row = sheet.getRow(4);
+            row.getCell(2).setCellValue(businessDataVO.getValidOrderCount());
+            row.getCell(4).setCellValue(businessDataVO.getUnitPrice());
+
+
+            for(int i=0;i<30;i++){
+                LocalDate date = begin.plusDays(i);
+                //查询某一天的营业数
+                BusinessDataVO businessDatavo = workspaceService.businessData(LocalDateTime.of(date,LocalTime.MIN),LocalDateTime.of(date,LocalTime.MAX));
+                //获得某一行
+                row = sheet.getRow(7+i);
+                row.getCell(1).setCellValue(date.toString());
+                row.getCell(2).setCellValue(businessDatavo.getTurnover());
+                row.getCell(3).setCellValue(businessDatavo.getValidOrderCount());
+                row.getCell(4).setCellValue(businessDatavo.getOrderCompletionRate());
+                row.getCell(5).setCellValue(businessDatavo.getUnitPrice());
+                row.getCell(6).setCellValue(businessDatavo.getNewUsers());
+            }
+
+            ServletOutputStream outputStream = response.getOutputStream();
+            workbook.write(outputStream);
+
+            outputStream.close();
+            workbook.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
 
     }

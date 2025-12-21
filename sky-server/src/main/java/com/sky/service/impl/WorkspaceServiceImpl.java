@@ -44,10 +44,10 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public BusinessDataVO businessData() {
-        LocalDate now = LocalDate.now();
-        LocalDateTime beginTime = LocalDateTime.of(now, LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.of(now, LocalTime.MAX);
+    public BusinessDataVO businessData(LocalDateTime beginTime, LocalDateTime endTime) {
+//        LocalDate now = LocalDate.now();
+//        LocalDateTime beginTime = LocalDateTime.of(now, LocalTime.MIN);
+//        LocalDateTime endTime = LocalDateTime.of(now, LocalTime.MAX);
 
         BusinessDataVO vo = new BusinessDataVO();
         Map param = new HashMap();
